@@ -2,8 +2,8 @@ single_pendulum_config = {
     "mass": 1.0,
     "length": 1.0,
     "g": 3,
-    "num_trajectories": 100,
-    "trajectory_length": 120,
+    "num_trajectories": 150,
+    "trajectory_length": 16,
     "dt": 0.2 * (3./15),
     'theta_min': -2.0,
     'theta_max': +2.0,
@@ -14,7 +14,7 @@ single_pendulum_config = {
 
 single_pendulum_training = {
     "dt": 0.2 * (3./15),
-    "num_epochs": 400,
+    "num_epochs": 300,
     "batch_size": 128,
     "learning_rate": 0.001,
     "hidden_dim": 200,
