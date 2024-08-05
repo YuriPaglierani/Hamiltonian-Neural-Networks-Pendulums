@@ -1,7 +1,7 @@
 # Single Pendulum Dataset
 
 ## Overview
-This dataset contains simulated trajectories for a batch of 100 single pendulum systems. It is designed for training and testing Hamiltonian Neural Networks (HNNs) on learning the dynamics of a simple physical system, including energy conservation principles.
+This dataset contains simulated trajectories for a batch of 150 single pendulum systems. It is designed for training and testing Hamiltonian Neural Networks (HNNs) on learning the dynamics of a simple physical system, including energy conservation principles, and phase space dynamics.
 
 ## Dataset Specifications
 * **Format**: PyTorch tensor saved as a .pt file
@@ -13,7 +13,7 @@ This dataset contains simulated trajectories for a batch of 100 single pendulum 
 
 ## Data Components:
 0. *theta*: Angular displacement (radians)
-1. *p_theta*: Angular momentum
+1. *p*: Angular momentum
 2. *mass*: Mass of the pendulum point (kg)
 3. *length*: Length of the pendulum (m)
 4. *g*: Gravitational acceleration (m/s^2)

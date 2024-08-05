@@ -7,11 +7,12 @@ Classes:
 Dependencies:
     torch
     torch.nn
+    torch.func
     typing
     matplotlib.pyplot
 """
 
-from typing import Tuple, List, Union
+from typing import List, Union
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt

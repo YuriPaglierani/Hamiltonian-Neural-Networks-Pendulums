@@ -11,7 +11,7 @@ from jax import vmap, jit
 import torch
 import numpy as np
 import pandas as pd
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 from src.double_pendulum.config import double_pendulum_config as config
 from src.double_pendulum.utils.plotting import animate_double_pendulum_with_energy_and_phase
@@ -20,6 +20,7 @@ from src.common.utils.integrators import (
     double_pendulum_position_derivative,
     double_pendulum_momentum_derivative,
 )
+
 from functools import partial
 
 jax.config.update("jax_enable_x64", True)
@@ -178,25 +179,7 @@ class DoublePendulumDataset(Dataset):
             Tensor containing the trajectory, its parameters, derivatives, and energies.
         """
         return self.data[idx]
-
-def get_double_pendulum_dataloader(batch_size: int = 32) -> Tuple[DataLoader, DataLoader]:
-    """
-    Create DataLoaders for the DoublePendulumDataset with train/test split.
-
-    Args:
-        batch_size: Number of trajectories per batch.
-
-    Returns:
-        Tuple of DataLoader objects for training and testing.
-    """
-    dataset = DoublePendulumDataset()
-    train_size = int(0.5 * len(dataset))
-    test_size = len(dataset) - train_size
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-    return train_loader, test_loader
-
+    
 def save_dataset(dataset: DoublePendulumDataset, filename: str) -> None:
     """
     Save the generated dataset to a file.

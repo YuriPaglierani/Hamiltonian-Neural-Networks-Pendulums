@@ -1,10 +1,8 @@
-import sys
 import os
 
 from typing import Tuple, Dict, List, Callable
 import numpy as np
 import torch
-import torch.nn as nn
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from src.single_pendulum.config import single_pendulum_config as config

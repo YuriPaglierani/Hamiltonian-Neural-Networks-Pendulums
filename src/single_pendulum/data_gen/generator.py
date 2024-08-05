@@ -11,9 +11,9 @@ from jax import vmap, jit
 import torch
 import numpy as np
 import pandas as pd
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
-# Relative imports within the package
+# Relative imports within the package, I choose this strategy
 from src.single_pendulum.config import single_pendulum_config as config
 from src.single_pendulum.utils.plotting import animate_single_pendulum_with_energy_and_phase
 from src.common.utils.integrators import (
@@ -41,7 +41,7 @@ class SinglePendulumDataset(Dataset):
         g: float,
         dt: float,
         trajectory_length: int
-    ) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+    ) -> Tuple[jnp.ndarray, jnp.ndarray]:
         """
         Simulate a single pendulum trajectory.
 
