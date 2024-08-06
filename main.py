@@ -30,7 +30,7 @@ def main():
         if args.pendulum_type == "single":
             train_single_pendulum()
         elif args.pendulum_type == "double":
-            train_double_pendulum(args.data_path, args.model_path, args.epochs, args.batch_size)
+            train_double_pendulum()
     else:
         parser.print_help()
         sys.exit(1)

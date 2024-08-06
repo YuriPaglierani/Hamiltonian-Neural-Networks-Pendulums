@@ -163,6 +163,12 @@ def plot_losses(stats: Dict[str, List[float]], save_dir: str, model_type: str) -
     plt.savefig(os.path.join(save_dir, f'loss_plot_{model_type}.png'))
     plt.close()
 
+import os
+from typing import Callable
+import numpy as np
+import torch
+import matplotlib.pyplot as plt
+
 def plot_phase_vector_field(true_dynamics: Callable, baseline_model: torch.nn.Module, 
                             hnn_model: torch.nn.Module, save_dir: str) -> None:
     """
@@ -174,50 +180,66 @@ def plot_phase_vector_field(true_dynamics: Callable, baseline_model: torch.nn.Mo
         hnn_model (torch.nn.Module): The trained HNN model.
         save_dir (str): Directory to save the plot.
     """
-    # Create a grid of points in phase space (we'll use theta1 and theta2)
+    # Create a grid of points in phase space
     theta1 = np.linspace(-np.pi, np.pi, 20)
     theta2 = np.linspace(-np.pi, np.pi, 20)
-    theta1_mesh, theta2_mesh = np.meshgrid(theta1, theta2)
+    p1 = np.linspace(-8, 8, 20)
+    p2 = np.linspace(-8, 8, 20)
 
-    # Create subplots
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
-    fig.suptitle("Phase Vector Field Comparison (θ1 vs θ2)", fontsize=16)
+    # Create subplots (4x3 grid)
+    fig, axes = plt.subplots(4, 3, figsize=(18, 24))
+    fig.suptitle("Phase Vector Field Comparison", fontsize=16)
 
-    # Increase the scale value to reduce arrow lengths
-    scale = 50
+    # List of all phase space combinations (excluding theta1 vs theta2 and p1 vs p2)
+    phase_spaces = [
+        (theta1, p1, 0, 2, "θ1", "p1", (-np.pi, np.pi), (-8, 8)),
+        (theta2, p2, 1, 3, "θ2", "p2", (-np.pi, np.pi), (-8, 8)),
+        (theta1, p2, 0, 3, "θ1", "p2", (-np.pi, np.pi), (-8, 8)),
+        (theta2, p1, 1, 2, "θ2", "p1", (-np.pi, np.pi), (-8, 8))
+    ]
 
-    # Plot for true dynamics
-    X = np.stack([theta1_mesh.flatten(), theta2_mesh.flatten(), np.zeros_like(theta1_mesh.flatten()), np.zeros_like(theta2_mesh.flatten())]).T
-    dX = true_dynamics(X)
-    ax1.quiver(theta1_mesh, theta2_mesh, dX[:, 0].reshape(theta1_mesh.shape), 
-               dX[:, 1].reshape(theta2_mesh.shape), scale=scale)
-    ax1.set_title("True Dynamics")
-    ax1.set_xlabel("θ1")
-    ax1.set_ylabel("θ2")
+    for row, (x, y, idx1, idx2, xlabel, ylabel, xlim, ylim) in enumerate(phase_spaces):
+        X, Y = np.meshgrid(x, y)
+        
+        # Prepare the full state space
+        states = np.zeros((X.size, 4))
+        states[:, idx1] = X.flatten()
+        states[:, idx2] = Y.flatten()
+        
+        # Compute dynamics for all models
+        true_dyn = true_dynamics(states)
+        
+        baseline_model.eval()
+        hnn_model.eval()
+        with torch.no_grad():
+            states_torch = torch.tensor(states, dtype=torch.float32)
+            baseline_dyn = baseline_model(states_torch).numpy()
+            hnn_dyn = hnn_model(states_torch).numpy()
+        
+        # Plot for all three models
+        for col, (dyn, title) in enumerate(zip([true_dyn, baseline_dyn, hnn_dyn], 
+                                               ["True Dynamics", "Baseline Model", "HNN Model"])):
+            ax = axes[row, col]
+            U = dyn[:, idx1].reshape(X.shape)
+            V = dyn[:, idx2].reshape(Y.shape)
+            
+            # Normalize arrows and increase length by 10%
+            norm = np.sqrt(U**2 + V**2)
+            max_norm = np.max(norm)
+            U = 1.3 * U / max_norm
+            V =  1.3 * V / max_norm
+            
+            ax.quiver(X, Y, U, V, scale=22, alpha=0.7)
+            
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
+            ax.set_title(f"{title}: {xlabel} vs {ylabel}")
+            ax.set_xlim(xlim)
+            ax.set_ylim(ylim)
+            ax.grid(True)
 
-    # Plot for baseline model
-    baseline_model.eval()
-    with torch.no_grad():
-        X_torch = torch.tensor(X, dtype=torch.float32)
-        dX_baseline = baseline_model(X_torch).numpy()
-    ax2.quiver(theta1_mesh, theta2_mesh, dX_baseline[:, 0].reshape(theta1_mesh.shape), 
-               dX_baseline[:, 1].reshape(theta2_mesh.shape), scale=scale)
-    ax2.set_title("Baseline Model")
-    ax2.set_xlabel("θ1")
-    ax2.set_ylabel("θ2")
-
-    # Plot for HNN model
-    hnn_model.eval()
-    with torch.no_grad():
-        dX_hnn = hnn_model(X_torch).numpy()
-    ax3.quiver(theta1_mesh, theta2_mesh, dX_hnn[:, 0].reshape(theta1_mesh.shape), 
-               dX_hnn[:, 1].reshape(theta2_mesh.shape), scale=scale)
-    ax3.set_title("HNN Model")
-    ax3.set_xlabel("θ1")
-    ax3.set_ylabel("θ2")
-
-    plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, 'phase_vector_field_comparison.png'))
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(os.path.join(save_dir, 'phase_vector_field_comparison.png'), dpi=300, bbox_inches='tight')
     plt.close()
 
     print(f"Phase vector field comparison plot saved in {save_dir}")
@@ -255,52 +277,51 @@ def plot_trajectory_comparison(original_trajectory: torch.Tensor,
     hnn_trajectory = generate_trajectory(hnn_model, x0, steps)
     baseline_trajectory = generate_trajectory(baseline_model, x0, steps)
 
-    # Plot phase space (θ1 vs θ2)
-    plt.figure(figsize=(12, 8))
-    plt.plot(original_trajectory[:, 0], original_trajectory[:, 1], label='Original', linewidth=2)
-    plt.plot(hnn_trajectory[:, 0].detach(), hnn_trajectory[:, 1].detach(), label='HNN', linestyle='--')
-    plt.plot(baseline_trajectory[:, 0].detach(), baseline_trajectory[:, 1].detach(), label='Baseline', linestyle=':')
-    plt.xlabel('θ1')
-    plt.ylabel('θ2')
-    plt.title('Trajectory Comparison in Phase Space (θ1 vs θ2)')
-    plt.legend()
-    plt.grid(True)
-    plt.savefig(os.path.join(save_dir, 'trajectory_comparison.png'))
+    # Create subplots
+    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
+    fig.suptitle('Trajectory Comparison in Phase Spaces', fontsize=16)
+
+    # Define phase space combinations
+    phase_spaces = [
+        (0, 1, "θ1", "θ2"),
+        (0, 2, "θ1", "p1"),
+        (0, 3, "θ1", "p2"),
+        (1, 2, "θ2", "p1"),
+        (1, 3, "θ2", "p2"),
+        (2, 3, "p1", "p2")
+    ]
+
+    for (i, j, xlabel, ylabel), ax in zip(phase_spaces, axes.flatten()):
+        ax.plot(original_trajectory[:, i], original_trajectory[:, j], label='Original', linewidth=2)
+        ax.plot(hnn_trajectory[:, i].detach(), hnn_trajectory[:, j].detach(), label='HNN', linestyle='--')
+        ax.plot(baseline_trajectory[:, i].detach(), baseline_trajectory[:, j].detach(), label='Baseline', linestyle=':')
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title(f'{xlabel} vs {ylabel}')
+        ax.legend()
+        ax.grid(True)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(os.path.join(save_dir, 'trajectory_comparison_all_phase_spaces.png'))
     plt.close()
 
     # Plot individual components over time
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12), sharex=True)
+    fig, axes = plt.subplots(2, 2, figsize=(16, 12), sharex=True)
+    components = ['θ1', 'θ2', 'p1', 'p2']
     
-    ax1.plot(t, original_trajectory[:, 0], label='Original', linewidth=2)
-    ax1.plot(t, hnn_trajectory[:, 0].detach(), label='HNN', linestyle='--')
-    ax1.plot(t, baseline_trajectory[:, 0].detach(), label='Baseline', linestyle=':')
-    ax1.set_ylabel('θ1')
-    ax1.legend()
-    ax1.grid(True)
-    
-    ax2.plot(t, original_trajectory[:, 1], label='Original', linewidth=2)
-    ax2.plot(t, hnn_trajectory[:, 1].detach(), label='HNN', linestyle='--')
-    ax2.plot(t, baseline_trajectory[:, 1].detach(), label='Baseline', linestyle=':')
-    ax2.set_ylabel('θ2')
-    ax2.legend()
-    ax2.grid(True)
-    
-    ax3.plot(t, original_trajectory[:, 2], label='Original', linewidth=2)
-    ax3.plot(t, hnn_trajectory[:, 2].detach(), label='HNN', linestyle='--')
-    ax3.plot(t, baseline_trajectory[:, 2].detach(), label='Baseline', linestyle=':')
-    ax3.set_xlabel('Time')
-    ax3.set_ylabel('p1')
-    ax3.legend()
-    ax3.grid(True)
-    
-    ax4.plot(t, original_trajectory[:, 3], label='Original', linewidth=2)
-    ax4.plot(t, hnn_trajectory[:, 3].detach(), label='HNN', linestyle='--')
-    ax4.plot(t, baseline_trajectory[:, 3].detach(), label='Baseline', linestyle=':')
-    ax4.set_xlabel('Time')
-    ax4.set_ylabel('p2')
-    ax4.legend()
-    ax4.grid(True)
+    for idx, (ax, component) in enumerate(zip(axes.flatten(), components)):
+        ax.plot(t, original_trajectory[:, idx], label='Original', linewidth=2)
+        ax.plot(t, hnn_trajectory[:, idx].detach(), label='HNN', linestyle='--')
+        ax.plot(t, baseline_trajectory[:, idx].detach(), label='Baseline', linestyle=':')
+        ax.set_ylabel(component)
+        ax.legend()
+        ax.grid(True)
+        if idx >= 2:
+            ax.set_xlabel('Time')
     
     plt.suptitle('Angles and Momenta over Time')
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
     plt.savefig(os.path.join(save_dir, 'trajectory_comparison_over_time.png'))
     plt.close()
+
+    print(f"Trajectory comparison plots saved in {save_dir}")

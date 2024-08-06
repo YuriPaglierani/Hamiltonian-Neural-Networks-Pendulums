@@ -147,49 +147,67 @@ def plot_phase_vector_field(true_dynamics: Callable, baseline_model: torch.nn.Mo
         save_dir (str): Directory to save the plot.
     """
     # Create a grid of points in phase space
-    theta = np.linspace(-np.pi, np.pi, 20)
-    p = np.linspace(-8, 8, 20)
-    theta_mesh, p_mesh = np.meshgrid(theta, p)
+    theta1 = np.linspace(-np.pi, np.pi, 20)
+    theta2 = np.linspace(-np.pi, np.pi, 20)
+    p1 = np.linspace(-8, 8, 20)
+    p2 = np.linspace(-8, 8, 20)
 
-    # Create subplots
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(18, 6))
+    # Create subplots (2x3 grid for 6 phase space combinations)
+    fig, axes = plt.subplots(2, 3, figsize=(24, 16))
     fig.suptitle("Phase Vector Field Comparison", fontsize=16)
 
-    # Increase the scale value to reduce arrow lengths
-    scale = 50  # Increased from 25 to 50
+    # List of all phase space combinations
+    phase_spaces = [
+        (theta1, theta2, 0, 1, "θ1", "θ2"),
+        (theta1, p1, 0, 2, "θ1", "p1"),
+        (theta2, p2, 1, 3, "θ2", "p2"),
+        (p1, p2, 2, 3, "p1", "p2"),
+        (theta1, p2, 0, 3, "θ1", "p2"),
+        (theta2, p1, 1, 2, "θ2", "p1")
+    ]
 
-    # Plot for true dynamics
-    X = np.stack([theta_mesh.flatten(), p_mesh.flatten()]).T
-    dX = true_dynamics(X)
-    ax1.quiver(theta_mesh, p_mesh, dX[:, 0].reshape(theta_mesh.shape), 
-               dX[:, 1].reshape(p_mesh.shape), scale=scale)
-    ax1.set_title("True Dynamics")
-    ax1.set_xlabel("θ")
-    ax1.set_ylabel("p")
-
-    # Plot for baseline model
-    baseline_model.eval()
-    with torch.no_grad():
-        X_torch = torch.tensor(X, dtype=torch.float32)
-        dX_baseline = baseline_model(X_torch).numpy()
-    ax2.quiver(theta_mesh, p_mesh, dX_baseline[:, 0].reshape(theta_mesh.shape), 
-               dX_baseline[:, 1].reshape(p_mesh.shape), scale=scale)
-    ax2.set_title("Baseline Model")
-    ax2.set_xlabel("θ")
-    ax2.set_ylabel("p")
-
-    # Plot for HNN model
-    hnn_model.eval()
-    with torch.no_grad():
-        dX_hnn = hnn_model(X_torch).numpy()
-    ax3.quiver(theta_mesh, p_mesh, dX_hnn[:, 0].reshape(theta_mesh.shape), 
-               dX_hnn[:, 1].reshape(p_mesh.shape), scale=scale)
-    ax3.set_title("HNN Model")
-    ax3.set_xlabel("θ")
-    ax3.set_ylabel("p")
+    for idx, (x, y, idx1, idx2, xlabel, ylabel) in enumerate(phase_spaces):
+        ax = axes[idx // 3, idx % 3]
+        X, Y = np.meshgrid(x, y)
+        
+        # Prepare the full state space
+        states = np.zeros((X.size, 4))
+        states[:, idx1] = X.flatten()
+        states[:, idx2] = Y.flatten()
+        
+        # Compute dynamics for all models
+        true_dyn = true_dynamics(states)
+        
+        baseline_model.eval()
+        hnn_model.eval()
+        with torch.no_grad():
+            states_torch = torch.tensor(states, dtype=torch.float32)
+            baseline_dyn = baseline_model(states_torch).numpy()
+            hnn_dyn = hnn_model(states_torch).numpy()
+        
+        # Plot for all three models
+        for i, (dyn, title, color) in enumerate(zip([true_dyn, baseline_dyn, hnn_dyn], 
+                                                    ["True Dynamics", "Baseline Model", "HNN Model"],
+                                                    ['r', 'g', 'b'])):
+            U = dyn[:, idx1].reshape(X.shape)
+            V = dyn[:, idx2].reshape(Y.shape)
+            
+            # Normalize arrows
+            norm = np.sqrt(U**2 + V**2)
+            U = U / (norm + 1e-8)  # Add small epsilon to avoid division by zero
+            V = V / (norm + 1e-8)
+            
+            ax.quiver(X, Y, U, V, color=color, scale=50, label=title, alpha=0.7)
+        
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title(f"Phase Space: {xlabel} vs {ylabel}")
+        ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+        ax.set_aspect('equal')
+        ax.grid(True)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(save_dir, 'phase_vector_field_comparison.png'))
+    plt.savefig(os.path.join(save_dir, 'phase_vector_field_comparison.png'), dpi=300, bbox_inches='tight')
     plt.close()
 
     print(f"Phase vector field comparison plot saved in {save_dir}")

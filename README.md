@@ -1,10 +1,6 @@
-# Hamiltonian Neural Network for Pendulum Systems
+# Hamiltonian Neural Networks for Pendulum Systems
 
 This repository contains an implementation of Hamiltonian Neural Networks (HNNs) applied to single and double pendulum systems. The project demonstrates how HNNs can learn and predict the dynamics of these classical mechanical systems while preserving important physical properties like energy conservation.
-
-Before starting install the requirements.txt, then "pip install -e ." in the root directory of the project.
-
-python main.py generate single generates the dataset of single pendulum with an animation of the first generated trajectory.
 
 ## Project Overview
 
@@ -18,71 +14,60 @@ The main components of this project are:
 ## Repository Structure
 
 ```
-Hamiltonian-Neural-Networks-Pendulum/
+.
 ├── LICENSE
 ├── README.md
-├── common
-│   ├── __init__.py
-│   ├── __pycache__
-│   │   ├── __init__.cpython-310.pyc
-│   │   └── config.cpython-310.pyc
-│   ├── config.py
-│   └── utils
-│       ├── __init__.py
-│       ├── __pycache__
-│       │   ├── __init__.cpython-310.pyc
-│       │   └── integrators.cpython-310.pyc
-│       └── integrators.py
-├── double_pendulum
-│   ├── __init__.py
-│   ├── data
+├── data
+│   ├── double_pendulum
 │   │   ├── README.md
 │   │   └── double_pendulum_dataset_stormer_verlet.pt
-│   ├── data_gen
-│   │   ├── __init__.py
-│   │   └── generator.py
-│   ├── experiments
-│   │   ├── __init__.py
-│   │   └── experiment.py
-│   └── utils
-│       ├── __init__.py
-│       └── plotting.py
-├── models
-│   ├── __init__.py
-│   ├── hnn.ipynb
-│   └── hnn.py
+│   └── single_pendulum
+│       ├── README.md
+│       └── single_pendulum_dataset_stormer_verlet.pt
+├── main.py
+├── notebooks
+│   ├── double_pendulum_nb.ipynb
+│   └── single_pendulum_nb.ipynb
+├── report
 ├── requirements.txt
-├── simulations
-│   ├── double_pendulum_animation_stormer_verlet.gif
-│   └── single_pendulum_animation_stormer_verlet.gif
-└── single_pendulum
-    ├── __init__.py
-    ├── data
-    │   ├── README.md
-    │   └── single_pendulum_dataset_stormer_verlet.pt
-    ├── data_gen
-    │   ├── __init__.py
-    │   └── generator.py
-    ├── experiments
-    │   ├── __init__.py
-    │   └── experiment.py
-    └── utils
-        ├── __init__.py
-        └── plotting.py
+├── results
+│   ├── double_pendulum
+│   │   ├── images
+│   │   └── models
+│   ├── simulations
+│   └── single_pendulum
+│       ├── images
+│       └── models
+└── src
+    ├── common
+    │   └── utils
+    ├── double_pendulum
+    │   ├── config.py
+    │   ├── data_gen
+    │   ├── train
+    │   └── utils
+    ├── models
+    │   ├── hnn.py
+    │   └── utils.py
+    └── single_pendulum
+        ├── config.py
+        ├── data_gen
+        ├── train
+        └── utils
 ```
 
 ## Setup
 
 1. Clone this repository:
    ```
-   git clone https://github.com/yourusername/hnn-pendulum-project.git
-   cd Hamiltonian-Neural-Networks-Pendulum
+   git clone https://github.com/yourusername/hamiltonian-neural-networks-pendulum.git
+   cd hamiltonian-neural-networks-pendulum
    ```
 
 2. Create a virtual environment and activate it:
    ```
    python -m venv venv
-   source venv/bin/activate
+   source venv/bin/activate 
    ```
 
 3. Install the required packages:
@@ -90,30 +75,56 @@ Hamiltonian-Neural-Networks-Pendulum/
    pip install -r requirements.txt
    ```
 
-## Running the Experiments
+4. Install the project in editable mode:
+   ```
+   pip install -e .
+   ```
 
-To run the single pendulum experiment:
+## Usage
+
+The project can be used from the command line with the following commands:
+
+### Generate Data
+
+To generate pendulum data:
 
 ```
-python experiments/single_pendulum_experiment.py
+python main.py generate [single|double] [--output_path PATH] [--integration_mode MODE]
 ```
 
-To run the double pendulum experiment:
+- `single` or `double`: Specify the type of pendulum system
+- `--output_path`: (Optional) Specify the path to save the generated data
+- `--integration_mode`: (Optional) Specify the integration method (default: stormer_verlet)
+
+Example:
+```
+python main.py generate single --integration_mode stormer_verlet
+```
+
+### Train Models
+
+To train pendulum models:
 
 ```
-python experiments/double_pendulum_experiment.py
+python main.py train [single|double]
 ```
 
-Each experiment will train an HNN model on the respective pendulum system and generate plots comparing the true and predicted trajectories, as well as the energy conservation properties of the HNN versus the true system.
+- `single` or `double`: Specify the type of pendulum system to train on
+
+Example:
+```
+python main.py train double
+```
 
 ## Results
 
-After running the experiments, you will find the following output files in the project root directory:
+After running the experiments, you will find the following output files in the `results` directory:
 
-- `single_pendulum_results.png`: Trajectory and energy comparison for the single pendulum system
-- `double_pendulum_results.png`: Trajectory and energy comparison for the double pendulum system
+- `results/single_pendulum/images/`: Contains plots for the single pendulum system
+- `results/double_pendulum/images/`: Contains plots for the double pendulum system
+- `results/simulations/`: Contains animations of the pendulum systems
 
-These plots demonstrate the ability of the HNN to learn and predict the dynamics of the pendulum systems while preserving energy conservation.
+These plots and animations demonstrate the ability of the HNN to learn and predict the dynamics of the pendulum systems while preserving energy conservation.
 
 ## Contributing
 
