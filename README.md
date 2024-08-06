@@ -92,7 +92,7 @@ python main.py generate [single|double]
 ```
 
 - `single` or `double`: Specify the type of pendulum system
-- 
+
 Example:
 ```
 python main.py generate single
