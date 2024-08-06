@@ -70,7 +70,7 @@ The main components of this project are:
 
 2. Create a virtual environment and activate it:
    ```
-   conda create --name hnn-pendulum python=3.9
+   conda create --name hnn-pendulum python=3.10.13
    conda activate hnn-pendulum 
    ```
 
