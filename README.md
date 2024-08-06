@@ -70,18 +70,13 @@ The main components of this project are:
 
 2. Create a virtual environment and activate it:
    ```
-   python -m venv venv
-   source venv/bin/activate 
+   conda create --name hnn-pendulum python=3.9
+   conda activate hnn-pendulum 
    ```
 
 3. Install the required packages:
    ```
    pip install -r requirements.txt
-   ```
-
-4. Install the project in editable mode:
-   ```
-   pip install -e .
    ```
 
 ## Usage
