@@ -1,6 +1,10 @@
 # Hamiltonian Neural Networks for Pendulum Systems
 
-This repository contains an implementation of Hamiltonian Neural Networks (HNNs) applied to single and double pendulum systems. The project demonstrates how HNNs can learn and predict the dynamics of these classical mechanical systems while preserving important physical properties like energy conservation.
+This repository contains an implementation of Hamiltonian Neural Networks (HNNs) applied to single and double pendulum systems. The project demonstrates how HNNs can learn and predict the dynamics of these classical mechanical systems, the double pendulum experiment shows also the behaviors of models in chaotic systems.
+
+This work is based on the paper Greydanus, Samuel, Misko Dzamba, and Jason Yosinski. *Hamiltonian Neural Networks*. 2019. [arXiv:1906.01563](https://arxiv.org/abs/1906.01563).
+
+The idea of this project came from the Steve Brunton video about HNNs: [https://www.youtube.com/watch?v=AEOcss20nDA](https://www.youtube.com/watch?v=AEOcss20nDA)
 
 ## Project Overview
 
@@ -89,16 +93,14 @@ The project can be used from the command line with the following commands:
 To generate pendulum data:
 
 ```
-python main.py generate [single|double] [--output_path PATH] [--integration_mode MODE]
+python main.py generate [single|double]
 ```
 
 - `single` or `double`: Specify the type of pendulum system
-- `--output_path`: (Optional) Specify the path to save the generated data
-- `--integration_mode`: (Optional) Specify the integration method (default: stormer_verlet)
-
+- 
 Example:
 ```
-python main.py generate single --integration_mode stormer_verlet
+python main.py generate single
 ```
 
 ### Train Models
