@@ -25,7 +25,7 @@ def main():
         if args.pendulum_type == "single":
             generate_single_pendulum_data(args.output_path, args.integration_mode)
         elif args.pendulum_type == "double":
-            generate_double_pendulum_data(args.output_path)
+            generate_double_pendulum_data(args.output_path, args.integration_mode)
     elif args.command == "train":
         if args.pendulum_type == "single":
             train_single_pendulum()

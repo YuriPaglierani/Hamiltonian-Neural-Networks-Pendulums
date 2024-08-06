@@ -12,7 +12,7 @@ def animate_double_pendulum_with_energy_and_phase(trajectory: torch.Tensor, save
 
     Args:
         trajectory (torch.Tensor): A tensor of shape (time_steps, 16) where each row contains
-                                   [theta1, theta2, p1, p2, m1, m2, l1, l2, g, dH_dtheta1, dH_dtheta2, dH_dp1, dH_dp2, kinetic, potential, total].
+                                   [theta1, theta2, p1, p2, m1, m2, l1, l2, g, theta1_dot, theta2_dot, p1_dot, p2_dot, kinetic, potential, total].
         save_path (str, optional): If provided, save the animation to this path.
 
     Returns:
@@ -23,6 +23,8 @@ def animate_double_pendulum_with_energy_and_phase(trajectory: torch.Tensor, save
     p1 = trajectory[:, 2].numpy()
     p2 = trajectory[:, 3].numpy()
     m1, m2, l1, l2, g = trajectory[0, 4:9].numpy()
+    kinetic = trajectory[:, 13].numpy()
+    potential = trajectory[:, 14].numpy()
     total = trajectory[:, 15].numpy()
     
     x1 = l1 * np.sin(theta1)
@@ -34,12 +36,12 @@ def animate_double_pendulum_with_energy_and_phase(trajectory: torch.Tensor, save
 
     # Set up the figure and axes
     fig = plt.figure(figsize=(20, 16))
-    gs = fig.add_gridspec(4, 3)
+    gs = fig.add_gridspec(3, 3)
     
     ax_pendulum = fig.add_subplot(gs[0, 0])
     ax_energy = fig.add_subplot(gs[0, 1:])
     
-    ax_phase_spaces = [fig.add_subplot(gs[i, j]) for i in range(1, 4) for j in range(3)]
+    ax_phase_spaces = [fig.add_subplot(gs[i, j]) for i in range(1, 3) for j in range(3)]
     
     fig.set_tight_layout(True)
     
@@ -54,8 +56,10 @@ def animate_double_pendulum_with_energy_and_phase(trajectory: torch.Tensor, save
 
     # Energy subplot
     ax_energy.set_xlim(0, time[-1])
-    ax_energy.set_ylim(0, max(total) * 1.1)
-    ax_energy.set_title("Total Energy over Time")
+    energy_min = min(min(kinetic), min(potential), min(total))
+    energy_max = max(max(kinetic), max(potential), max(total))
+    ax_energy.set_ylim(energy_min, energy_max * 1.1)
+    ax_energy.set_title("Energy over Time")
     ax_energy.set_xlabel('Time (s)')
     ax_energy.set_ylabel('Energy')
     ax_energy.grid(True)
@@ -81,7 +85,11 @@ def animate_double_pendulum_with_energy_and_phase(trajectory: torch.Tensor, save
     # Initialize plots
     pendulum_lines, = ax_pendulum.plot([], [], 'o-', lw=2)
     time_text = ax_pendulum.text(0.05, 0.95, '', transform=ax_pendulum.transAxes)
-    energy_line, = ax_energy.plot([], [], label='Total Energy')
+    energy_lines = [
+        ax_energy.plot([], [], label=label, lw=2)[0]
+        for label in ['Kinetic', 'Potential', 'Total']
+    ]
+    ax_energy.legend(loc='upper right')
     
     phase_trajectories = [ax.plot([], [], 'b-', alpha=0.5)[0] for ax in ax_phase_spaces]
     phase_points = [ax.plot([], [], 'ro')[0] for ax in ax_phase_spaces]
@@ -90,17 +98,20 @@ def animate_double_pendulum_with_energy_and_phase(trajectory: torch.Tensor, save
         """Initialize the animation"""
         pendulum_lines.set_data([], [])
         time_text.set_text('')
-        energy_line.set_data([], [])
+        for line in energy_lines:
+            line.set_data([], [])
         for traj, point in zip(phase_trajectories, phase_points):
             traj.set_data([], [])
             point.set_data([], [])
-        return [pendulum_lines, time_text, energy_line] + phase_trajectories + phase_points
+        return [pendulum_lines, time_text] + energy_lines + phase_trajectories + phase_points
 
     def animate(i):
         """Update the animation at each frame"""
         pendulum_lines.set_data([0, x1[i], x2[i]], [0, y1[i], y2[i]])
         time_text.set_text(f'Time: {time[i]:.1f}s')
-        energy_line.set_data(time[:i+1], total[:i+1])
+        
+        for line, energy in zip(energy_lines, [kinetic, potential, total]):
+            line.set_data(time[:i+1], energy[:i+1])
         
         phase_data = [
             (theta1[:i+1], p1[:i+1], theta1[i], p1[i]),
@@ -115,7 +126,7 @@ def animate_double_pendulum_with_energy_and_phase(trajectory: torch.Tensor, save
             traj.set_data(x_traj, y_traj)
             point.set_data([x_point], [y_point])
         
-        return [pendulum_lines, time_text, energy_line] + phase_trajectories + phase_points
+        return [pendulum_lines, time_text] + energy_lines + phase_trajectories + phase_points
 
     # Create the animation
     anim = FuncAnimation(fig, animate, init_func=init,

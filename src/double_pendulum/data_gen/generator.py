@@ -79,7 +79,7 @@ class DoublePendulumDataset(Dataset):
 
     def generate_data(self) -> torch.Tensor:
         """
-        Generate the dataset of double pendulum trajectories.
+        Generate the dataset of pendulum trajectories including energies.
 
         Returns:
             Tensor containing all trajectories with their parameters, derivatives, and energies.
@@ -91,13 +91,13 @@ class DoublePendulumDataset(Dataset):
             return jax.random.uniform(
                 key,
                 shape=(4,),
-                minval=jnp.array([config['theta_min'], config['theta_min'], config['p_min'], config['p_min']]),
-                maxval=jnp.array([config['theta_max'], config['theta_max'], config['p_max'], config['p_max']])
+                minval=jnp.array([config['theta_min'][0], config['theta_min'][1], config['p_min'][0], config['p_min'][1]]),
+                maxval=jnp.array([config['theta_max'][0], config['theta_max'][1], config['p_max'][0], config['p_max'][1]])
             )
 
         generate_states = jax.vmap(generate_state)
         init_states = generate_states(keys)
-
+    
         m1s = jnp.full((config['num_trajectories'],), config['mass1'])
         m2s = jnp.full((config['num_trajectories'],), config['mass2'])
         l1s = jnp.full((config['num_trajectories'],), config['length1'])
@@ -126,7 +126,7 @@ class DoublePendulumDataset(Dataset):
 
         # Unpack derivatives and energies
         theta1_dot, theta2_dot, p1_dot, p2_dot = derivatives
-
+    
         def calculate_double_pendulum_energies(m1: float,
                                                m2: float,
                                                l1: float,
@@ -134,7 +134,8 @@ class DoublePendulumDataset(Dataset):
                                                g: float,
                                                thetas: jnp.ndarray,
                                                ps: jnp.ndarray) -> Tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
-            # first split the thetas and ps
+            """Calculate kinetic, potential, and total energy of the pendulum."""
+
             theta1, theta2 = thetas[..., 0], thetas[..., 1]
             p1, p2 = ps[..., 0], ps[..., 1]
 
@@ -145,9 +146,17 @@ class DoublePendulumDataset(Dataset):
         
         thetas = trajectories[..., :2]
         ps = trajectories[..., 2:]
-        calculate_double_pendulum_energies_jit = jit(calculate_double_pendulum_energies, static_argnums=(0, 1, 2, 3, 4))
-        energies = calculate_double_pendulum_energies_jit(m1s, m2s, l1s, l2s, gs, thetas, ps)
-        kinetic, potential, total = energies
+        
+        calculate_energies_batch = jax.vmap(calculate_double_pendulum_energies, in_axes=(0, 0, 0, 0, 0, 0, 0))
+        kinetic, potential, total = calculate_energies_batch(
+            m1s[:, jnp.newaxis],
+            m2s[:, jnp.newaxis],
+            l1s[:, jnp.newaxis],
+            l2s[:, jnp.newaxis],
+            gs[:, jnp.newaxis],
+            thetas,
+            ps
+        )
 
         # Reorder the data
         data = jnp.concatenate([
@@ -239,7 +248,7 @@ def generate_double_pendulum_data(
         df = pd.DataFrame(
             dataset.data.view(-1, dataset.data.size(-1)).numpy(),
             columns=['theta1', 'theta2', 'p1', 'p2', 'm1', 'm2', 'l1', 'l2', 'g', 
-                     'dH_dtheta1', 'dH_dtheta2', 'dH_dp1', 'dH_dp2', 'kinetic', 'potential', 'total']
+                     'theta1_dot', 'theta2_dot', 'p1_dot', 'p2_dot', 'kinetic', 'potential', 'total']
         )
         
         # Print dataset preview

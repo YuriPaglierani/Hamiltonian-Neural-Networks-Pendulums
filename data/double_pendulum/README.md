@@ -2,15 +2,15 @@
 
 ### Overview
 
-This dataset contains simulated trajectories for a batch of 150 double pendulum systems. It is designed for training and testing Hamiltonian Neural Networks (HNNs) on learning the dynamics of a more complex physical system compared to the single pendulum, including energy conservation principles and phase space dynamics.
+This dataset contains simulated trajectories for a batch of 300 double pendulum systems. It is designed for training and testing Hamiltonian Neural Networks (HNNs) on learning the dynamics of a more complex physical system compared to the single pendulum, including energy conservation principles and phase space dynamics.
 
 ### Dataset Specifications
 - **Format**: PyTorch tensor saved as a .pt file
-- **Size**: Approximately 6.10 MB for 150 trajectories
-- **Dimensions**: (num_trajectories, trajectory_length, 14)
-- **num_trajectories**: Number of unique double pendulum simulations (default: 150)
-- **trajectory_length**: Number of time steps in each trajectory (default: 46)
-- **16**: Each time step contains [theta1, theta2, p1, p2, m1, m2, l1, l2, g, theta1_dot, theta2_dot, p1_dot, p2_dot, E]
+- **Size**: Approximately 6.10 MB for 300 trajectories
+- **Dimensions**: (num_trajectories, trajectory_length, 16)
+- **num_trajectories**: Number of unique double pendulum simulations (default: 300)
+- **trajectory_length**: Number of time steps in each trajectory (default: 61)
+- **16**: Each time step contains [theta1, theta2, p1, p2, m1, m2, l1, l2, g, theta1_dot, theta2_dot, p1_dot, p2_dot, K, U, E]
 
 #### Data Components:
 0-1. *theta1, theta2*: Angular displacements (radians)
@@ -20,7 +20,9 @@ This dataset contains simulated trajectories for a batch of 150 double pendulum 
 8. *g*: Gravitational acceleration (m/s^2)
 9-10. *theta1_dot, theta2_dot*: equal to dH/dp_i
 11-12. *p1_dot, p2_dot*: equal to -dH/dq_i
-13. *E*: Total energy of the system
+13. *K*: Kinetic energy of the system
+14. *U*: Potential energy of the system
+15. *E*: Total energy of the system
 
 ### Data Generation
 The dataset is generated using a Störmer-Verlet integrator to ensure good stability during the simulation. The initial conditions and pendulum parameters are randomly sampled for each trajectory:
@@ -41,7 +43,7 @@ This dataset is particularly useful for:
 4. Analyzing phase space dynamics and energy transfer between pendulum components
 5. Investigating the relationship between system parameters, state variables, and energy components
 
-When using this dataset, ensure that your model correctly interprets the order of the variables: positions (theta1, theta2), momenta (p1, p2), parameters (m1, m2, l1, l2, g), dynamics (theta1_dot, theta2_dot, p1_dot, p2_dot), and total energy component (E).
+When using this dataset, ensure that your model correctly interprets the order of the variables: positions (theta1, theta2), momenta (p1, p2), parameters (m1, m2, l1, l2, g), dynamics (theta1_dot, theta2_dot, p1_dot, p2_dot), and energy components (total kinetic, total potential, total energy).
 
 ### Configuration
 The dataset generation is controlled by parameters in the `config.py` file. Key parameters include:

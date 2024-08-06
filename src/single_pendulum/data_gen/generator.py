@@ -97,7 +97,7 @@ class SinglePendulumDataset(Dataset):
                 minval=jnp.array([config['theta_min'], config['p_min']]),
                 maxval=jnp.array([config['theta_max'], config['p_max']])
             )
-
+        
         generate_states = jax.vmap(generate_state)
         init_states = generate_states(keys)
     
