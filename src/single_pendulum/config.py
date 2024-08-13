@@ -14,7 +14,7 @@ single_pendulum_config = {
 
 single_pendulum_training = {
     "dt": 0.2 * (3./15),
-    "num_epochs": 300,
+    "num_epochs": 600,
     "batch_size": 128,
     "learning_rate": 0.001,
     "hidden_dim": 200,

@@ -70,9 +70,9 @@ class MLP(nn.Module):
         
         # Configure hidden dimensions
         if isinstance(hidden_dims, int):
-            self.hidden_dims = [hidden_dims] * (num_layers - 2)
+            self.hidden_dims = [hidden_dims] * (num_layers - 1)
         elif isinstance(hidden_dims, list):
-            if len(hidden_dims) != num_layers - 2:
+            if len(hidden_dims) != num_layers - 1:
                 raise ValueError("Length of hidden_dims list must be equal to num_layers - 2")
             self.hidden_dims = hidden_dims
         else:
