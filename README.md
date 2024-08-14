@@ -14,6 +14,7 @@ The main components of this project are:
 2. Implementation of a Hamiltonian Neural Network
 3. Training scripts for both single and double pendulum experiments
 4. Visualization tools for comparing true and predicted trajectories, as well as energy conservation
+5. Notebooks for both single, and double pendulum application
 
 ## Repository Structure
 
@@ -71,6 +72,7 @@ The main components of this project are:
 2. Create a virtual environment and activate it:
    ```
    conda create --name hnn-pendulum python=3.10.13
+   conda init (after closing, and reopening terminal)
    conda activate hnn-pendulum 
    ```
 
