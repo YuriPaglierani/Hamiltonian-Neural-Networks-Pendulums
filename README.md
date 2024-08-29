@@ -33,7 +33,8 @@ The main components of this project are:
 ├── notebooks
 │   ├── double_pendulum_nb.ipynb
 │   └── single_pendulum_nb.ipynb
-├── report
+├── presentation
+│   ├── project_presentation.pdf
 ├── requirements.txt
 ├── results
 │   ├── double_pendulum
