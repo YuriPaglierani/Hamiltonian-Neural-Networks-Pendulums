@@ -6,9 +6,9 @@ This dataset contains simulated trajectories for a batch of 300 double pendulum 
 
 ### Dataset Specifications
 - **Format**: PyTorch tensor saved as a .pt file
-- **Size**: Approximately 1.11 MB for 300 trajectories
-- **Dimensions**: (num_trajectories, trajectory_length, 16)
-- **num_trajectories**: Number of unique double pendulum simulations (default: 300)
+- **Size**: Approximately 3.35 MB for 300 trajectories
+- **Dimensions**: (num_trajectories, trajectory_length, 61)
+- **num_trajectories**: Number of unique double pendulum simulations (default: 900)
 - **trajectory_length**: Number of time steps in each trajectory (default: 61)
 - **16**: Each time step contains [theta1, theta2, p1, p2, m1, m2, l1, l2, g, theta1_dot, theta2_dot, p1_dot, p2_dot, K, U, E]
 

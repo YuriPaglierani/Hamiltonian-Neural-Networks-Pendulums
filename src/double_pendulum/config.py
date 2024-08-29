@@ -6,13 +6,13 @@ double_pendulum_config = {
     "length1": 1.5,
     "length2": 2.0,
     "g": 3.0,
-    "num_trajectories": 300,
+    "num_trajectories": 900,
     "trajectory_length": 61,
     "dt": 0.2 * (3./15),
-    'theta_min': [-2.0, -2.0],
-    'theta_max': [2.0, 2.0],
-    'p_min': [-15.0, -7.5],
-    'p_max': [15.0, 7.5],
+    'theta_min': [-3.0, -3.0],
+    'theta_max': [3.0, 3.0],
+    'p_min': [-10.0, -10.0],
+    'p_max': [10.0, 10.0],
 }
 
 double_pendulum_training = {
