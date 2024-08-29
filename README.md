@@ -34,7 +34,7 @@ The main components of this project are:
 │   ├── double_pendulum_nb.ipynb
 │   └── single_pendulum_nb.ipynb
 ├── presentation
-│   ├── project_presentation.pdf
+│   └── project_presentation.pdf
 ├── requirements.txt
 ├── results
 │   ├── double_pendulum
