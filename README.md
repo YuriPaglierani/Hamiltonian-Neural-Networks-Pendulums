@@ -16,6 +16,12 @@ The main components of this project are:
 4. Visualization tools for comparing true and predicted trajectories, as well as energy conservation
 5. Notebooks for both single, and double pendulum application
 
+## Fast way
+
+Here I prepared [this Google Colab](https://colab.research.google.com/drive/194D_fDPusEWJ1uea0T06N0QnxogteER2?usp=sharing) you can open and run (tested only on CPU)
+
+If you need more low-level insigths, please look at the notebooks in the repo or in the src code
+
 ## Repository Structure
 
 ```
